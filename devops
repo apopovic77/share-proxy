@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="/Volumes/DatenAP/Code/share-proxy"
+REPO_ROOT="/Volumes/DatenAP/Code/share.arkturian.com"
 SCRIPTS_DIR="$REPO_ROOT/.devops/scripts"
 
 usage() {

@@ -8,7 +8,7 @@
   "NODE_VERSION": "18",
   "PROJECT_NAME": "Share Proxy",
   "PROJECT_SLUG": "share-proxy",
-  "REPO_ROOT": "/Volumes/DatenAP/Code/share-proxy",
+  "REPO_ROOT": "/Volumes/DatenAP/Code/share.arkturian.com",
   "SITE_URL": "https://share.arkturian.com",
   "STARTER_PATH": "/Volumes/DatenAP/Code/github-starterpack",
   "WEB_GROUP": "www-data",
