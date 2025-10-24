@@ -300,7 +300,7 @@
         let currentIndex = -1;
         let player;
         let hls;
-        const API_BASE_URL = 'https://api.arkturian.com';
+        const API_BASE_URL = 'https://api-storage.arkturian.com';
         const API_KEY = 'Inetpass1';
 
         player = new Plyr(video, { controls: [], clickToPlay: true, fullscreen: { enabled: true } });

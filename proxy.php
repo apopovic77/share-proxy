@@ -15,7 +15,7 @@
  */
 
 // Configuration
-$apiBase = 'https://api.arkturian.com';
+$apiBase = 'https://api-storage.arkturian.com';
 $apiKey = 'Inetpass1';
 $cacheDir = '/tmp/share_proxy_cache';
 $cacheTTL = 86400; // 24 hours

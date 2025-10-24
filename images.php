@@ -1,7 +1,7 @@
 <?php
 // Server-side Open Graph/Twitter Card for rich previews (Telegram, etc.)
 $collectionId = isset($_GET['collection_id']) ? $_GET['collection_id'] : '';
-$apiBase = 'https://api.arkturian.com';
+$apiBase = 'https://api-storage.arkturian.com';
 $apiKey = 'Inetpass1';
 $ogTitle = $collectionId ? ("Collection: " . $collectionId) : 'Images';
 $ogDescription = 'Browse shared images and HLS videos.';
@@ -126,7 +126,7 @@ if ($collectionId) {
             setVh();
             window.addEventListener('resize', setVh);
             window.addEventListener('orientationchange', setVh);
-            const API_BASE_URL = 'https://api.arkturian.com';
+            const API_BASE_URL = 'https://api-storage.arkturian.com';
             const API_KEY = 'Inetpass1';
             const params = new URLSearchParams(window.location.search);
             const collectionId = params.get('collection_id');
