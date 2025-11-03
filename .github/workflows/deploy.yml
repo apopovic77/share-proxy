@@ -20,7 +20,14 @@ jobs:
           php-version: '8.1'
 
       - name: Validate PHP syntax
-        run: find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors" || true
+        run: |
+          set +e
+          find . -name "*.php" -exec php -l {} \; | tee /tmp/php-lint.log
+          if grep -q "Errors parsing" /tmp/php-lint.log; then
+            echo "❌ PHP syntax errors detected"
+            exit 1
+          fi
+          echo "✅ PHP syntax valid"
 
       - name: Build application
         run: echo 'No build needed for PHP application'
