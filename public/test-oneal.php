@@ -56,7 +56,7 @@ $products = $payload['results'];
     .tag { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 12px; margin-right: 6px; margin-bottom: 6px; }
     .section { margin-top: 12px; }
     .section h3 { font-size: 14px; margin: 0 0 6px; color: #1e293b; }
-    .json-dump { font-family: "Fira Code", monospace; font-size: 12px; background: #f1f5f9; padding: 8px; border-radius: 8px; overflow-x: auto; max-height: 180px; }
+    .json-dump { font-family: "Fira Code", monospace; font-size: 12px; background: #f1f5f9; padding: 8px 12px; border-radius: 8px; overflow: auto; max-height: 220px; white-space: pre-wrap; line-height: 1.6; border: 1px solid #cbd5f5; }
     details summary { cursor: pointer; font-weight: 600; margin-top: 10px; }
     .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; }
     .stats span { background: #e2e8f0; border-radius: 999px; padding: 4px 10px; }
@@ -104,7 +104,12 @@ $products = $payload['results'];
 
         <div class="meta">
           <strong><?= $name ?></strong><br>
-          <small><?= $id ?></small>
+          <small><?= $id ?></small><br>
+          <?php if (!empty($meta['product_url'])): ?>
+            <a href="<?= htmlspecialchars($meta['product_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">
+              Oneal Produktseite ↗
+            </a>
+          <?php endif; ?>
         </div>
 
         <div class="stats">
