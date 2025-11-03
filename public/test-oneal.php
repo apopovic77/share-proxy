@@ -49,8 +49,10 @@ $products = $payload['results'];
     header p { margin: 4px 0; color: #475569; }
     ul.product-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
     li.product-card { background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08); padding: 16px; display: flex; flex-direction: column; }
-    .thumb { width: 100%; aspect-ratio: 1 / 1; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; overflow: hidden; }
+    .thumb-wrapper { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+    .thumb { aspect-ratio: 1 / 1; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
     .thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .thumb span.label { position: absolute; bottom: 6px; left: 6px; background: rgba(15,23,42,0.75); color: white; font-size: 11px; padding: 2px 6px; border-radius: 999px; }
     .meta { font-size: 13px; line-height: 1.4; color: #475569; }
     .meta strong { color: #0f172a; font-weight: 600; }
     .tag { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 12px; margin-right: 6px; margin-bottom: 6px; }
@@ -94,12 +96,23 @@ $products = $payload['results'];
         }
       ?>
       <li class="product-card">
-        <div class="thumb">
-          <?php if ($imageUrl): ?>
-            <img src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $name ?>">
-          <?php else: ?>
-            <span>Kein Bild</span>
-          <?php endif; ?>
+        <div class="thumb-wrapper">
+          <div class="thumb">
+            <?php if ($imageUrl): ?>
+              <img src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $name ?>">
+              <span class="label">Storage</span>
+            <?php else: ?>
+              <span>Kein Bild</span>
+            <?php endif; ?>
+          </div>
+          <div class="thumb">
+            <?php if ($media && !empty($media['src'])): ?>
+              <img src="<?= htmlspecialchars($media['src'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= $name ?>">
+              <span class="label">Shop</span>
+            <?php else: ?>
+              <span>Kein Bild</span>
+            <?php endif; ?>
+          </div>
         </div>
 
         <div class="meta">
