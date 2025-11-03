@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-REPO_ROOT="/Volumes/DatenAP/Code/admin-panel"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DEV_BRANCH="dev"
 
 usage() {
