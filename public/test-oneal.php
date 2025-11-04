@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+// Allow long-running request; the API response can be large.
+@set_time_limit(0);
+@ini_set('memory_limit', '512M');
+
 $apiUrl = 'https://oneal-api.arkturian.com/v1/products?limit=1000';
 $apiKey = 'oneal_demo_token';
 
@@ -83,6 +87,7 @@ $products = $payload['results'];
         $price = $product['price'] ?? null;
         $media = $product['media'][0] ?? null;
         $storageId = isset($media['storage_id']) ? (int)$media['storage_id'] : null;
+        $cacheBuster = $storageId ? $storageId . '-' . time() : (string)time();
 
         $imageUrl = null;
         if ($media) {
@@ -99,8 +104,8 @@ $products = $payload['results'];
       <li class="product-card">
         <div class="thumb-wrapper">
           <div class="thumb">
-            <?php if ($imageUrl): ?>
-              <img src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $name ?>">
+          <?php if ($imageUrl): ?>
+              <img src="<?= htmlspecialchars($imageUrl . '&cb=' . $cacheBuster, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $name ?>">
               <span class="label">Storage</span>
             <?php else: ?>
               <span>Kein Bild</span>

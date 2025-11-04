@@ -60,7 +60,9 @@ if ($httpCode !== 200 || !$fileData) {
 // Serve file
 header('Content-Type: ' . $contentType);
 header('Content-Length: ' . strlen($fileData));
-header('Cache-Control: public, max-age=86400');
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 header('X-Proxy: share.arkturian.com');
 
 echo $fileData;
