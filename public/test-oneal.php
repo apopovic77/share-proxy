@@ -104,7 +104,8 @@ $products = $payload['results'];
         <div class="thumb-wrapper">
           <div class="thumb">
             <?php if ($imageUrl): ?>
-              <img src="<?= htmlspecialchars($imageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $name ?>">
+              <?php $cacheBuster = $storageId ? $storageId . '-' . time() : (string)time(); ?>
+              <img src="<?= htmlspecialchars($imageUrl . '&cb=' . $cacheBuster, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $name ?>">
               <span class="label">Storage</span>
             <?php else: ?>
               <span>Kein Bild</span>
