@@ -28,6 +28,16 @@ if (isset($_GET['width'])) $params[] = 'width=' . intval($_GET['width']);
 if (isset($_GET['height'])) $params[] = 'height=' . intval($_GET['height']);
 if (isset($_GET['format'])) $params[] = 'format=' . urlencode($_GET['format']);
 if (isset($_GET['quality'])) $params[] = 'quality=' . intval($_GET['quality']);
+
+$refreshRequested = false;
+if (isset($_GET['refresh'])) {
+    $value = strtolower(trim((string)$_GET['refresh']));
+    if ($value === '1' || $value === 'true' || $value === 'yes') {
+        $params[] = 'refresh=true';
+        $refreshRequested = true;
+    }
+}
+
 $queryString = $params ? '?' . implode('&', $params) : '';
 
 $url = $apiBase . '/storage/media/' . $objectId . $queryString;
@@ -60,7 +70,13 @@ if ($httpCode !== 200 || !$fileData) {
 // Serve file
 header('Content-Type: ' . $contentType);
 header('Content-Length: ' . strlen($fileData));
-header('Cache-Control: public, max-age=86400, immutable');
+if ($refreshRequested) {
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+} else {
+    header('Cache-Control: public, max-age=86400, immutable');
+}
 header('X-Proxy: share.arkturian.com');
 
 echo $fileData;
