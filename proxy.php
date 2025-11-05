@@ -28,6 +28,14 @@ if (isset($_GET['width'])) $params[] = 'width=' . intval($_GET['width']);
 if (isset($_GET['height'])) $params[] = 'height=' . intval($_GET['height']);
 if (isset($_GET['format'])) $params[] = 'format=' . urlencode($_GET['format']);
 if (isset($_GET['quality'])) $params[] = 'quality=' . intval($_GET['quality']);
+if (isset($_GET['trim'])) {
+    $value = strtolower(trim((string)$_GET['trim']));
+    if (in_array($value, ['1', 'true', 'yes'], true)) {
+        $params[] = 'trim=true';
+    } elseif (in_array($value, ['0', 'false', 'no'], true)) {
+        $params[] = 'trim=false';
+    }
+}
 
 $refreshRequested = false;
 if (isset($_GET['refresh'])) {
