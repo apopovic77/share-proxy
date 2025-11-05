@@ -6,7 +6,8 @@ declare(strict_types=1);
  *
  * Lists objects from storage API and lets you manually trigger warmups
  * (130px + 1300px WebP derivatives with refresh=true).
- * Also checks cached derivatives via HEAD requests to storage API.
+ * Nutzt den Storage-Endpoint /storage/cache-status, um den Cache-Zustand der
+ * Originale und Derivate zu prüfen.
  */
 
 @set_time_limit(0);
@@ -57,14 +58,16 @@ if (!$listResponse['success']) {
 $items = $listResponse['items'];
 $total = $listResponse['total'];
 
-// Optionally check derivative status for each object
-if ($checkStatus) {
+// Optionally check cache status for each object (original + derivatives)
+if ($checkStatus && $items) {
+    $objectIds = [];
+    foreach ($items as $it) {
+        $objectIds[] = (int)$it['id'];
+    }
+    $cacheStatus = fetchCacheStatus($objectIds, [130, 1300]);
     foreach ($items as &$item) {
         $id = (int)$item['id'];
-        $item['status'] = [
-            '130' => checkDerivative($id, 130, 75),
-            '1300' => checkDerivative($id, 1300, 85),
-        ];
+        $item['cache_status'] = $cacheStatus[$id] ?? null;
     }
     unset($item);
 }
@@ -138,60 +141,92 @@ function warmupDerivative(int $objectId, int $width, int $quality): array
     ];
 }
 
-function checkDerivative(int $objectId, int $width, int $quality): array
+function fetchCacheStatus(array $objectIds, array $widths): array
 {
-    $url = sprintf(
-        '%s/storage/media/%d?width=%d&format=webp&quality=%d',
-        STORAGE_API_BASE,
-        $objectId,
-        $width,
-        $quality
-    );
+    $objectIds = array_values(array_unique(array_filter(array_map('intval', $objectIds), fn($v) => $v > 0)));
+    if (!$objectIds) {
+        return [];
+    }
+
+    $query = [];
+    foreach ($objectIds as $id) {
+        $query[] = 'object_id=' . urlencode((string)$id);
+    }
+    foreach ($widths as $width) {
+        $query[] = 'width=' . urlencode((string)$width);
+    }
+    $url = STORAGE_API_BASE . '/storage/cache-status?' . implode('&', $query);
+
     $ch = curl_init($url);
     curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => ['X-API-KEY: ' . STORAGE_API_KEY],
-        CURLOPT_NOBODY => true,
-        CURLOPT_RETURNTRANSFER => false,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT => 20,
     ]);
-    curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    $bytes = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
-    $time = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
+    $body = curl_exec($ch);
     $error = curl_error($ch);
+    $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
     curl_close($ch);
 
-    return [
-        'code' => $code,
-        'bytes' => $bytes,
-        'time' => $time,
-        'error' => $error ?: null,
-        'url' => $url,
-    ];
+    if ($body === false || $code !== 200) {
+        return [];
+    }
+
+    $json = json_decode($body, true);
+    if (!is_array($json)) {
+        return [];
+    }
+
+    $map = [];
+    foreach ($json as $entry) {
+        if (!isset($entry['object_id'])) {
+            continue;
+        }
+        $id = (int)$entry['object_id'];
+        $derivatives = [];
+        if (!empty($entry['derivatives']) && is_array($entry['derivatives'])) {
+            foreach ($entry['derivatives'] as $derivative) {
+                $width = (int)($derivative['width'] ?? 0);
+                if ($width > 0) {
+                    $derivatives[$width] = $derivative;
+                }
+            }
+        }
+        $entry['derivatives'] = $derivatives;
+        $map[$id] = $entry;
+    }
+
+    return $map;
 }
 
-function formatStatus(?array $status): string
+function formatOriginalStatus(?array $status): string
 {
     if (!$status) {
         return '<span class="status status-unknown">–</span>';
     }
-    $code = (int)$status['code'];
-    $class = 'status-unknown';
-    if ($code >= 200 && $code < 300) {
-        $class = 'status-ok';
-    } elseif ($code >= 300 && $code < 500) {
-        $class = 'status-warn';
-    } elseif ($code >= 500) {
-        $class = 'status-error';
+    if (!empty($status['original_exists'])) {
+        $info = htmlspecialchars($status['original_path'] ?? 'lokal', ENT_QUOTES, 'UTF-8');
+        return '<span class="status status-ok">vorhanden</span><br><small>' . $info . '</small>';
     }
-    $size = $status['bytes'] !== -1 ? sprintf('%.1f KB', ($status['bytes'] ?? 0) / 1024) : 'n/a';
-    $time = sprintf('%.2fs', $status['time'] ?? 0);
-    $html = sprintf('<span class="status %s">%s • %s • %s</span>', $class, $code, $size, $time);
-    if (!empty($status['error'])) {
-        $html .= '<br><small class="error">' . htmlspecialchars($status['error'], ENT_QUOTES, 'UTF-8') . '</small>';
+    $msg = !empty($status['message']) ? htmlspecialchars((string)$status['message'], ENT_QUOTES, 'UTF-8') : 'fehlt';
+    $path = !empty($status['original_path']) ? '<br><small>' . htmlspecialchars((string)$status['original_path'], ENT_QUOTES, 'UTF-8') . '</small>' : '';
+    return '<span class="status status-warn">nicht lokal</span>' . $path . '<br><small class="error">' . $msg . '</small>';
+}
+
+function formatDerivativeStatus(?array $status): string
+{
+    if (!$status) {
+        return '<span class="status status-unknown">–</span>';
     }
-    return $html;
+    if (!empty($status['exists'])) {
+        $size = isset($status['size_bytes']) ? sprintf('%.1f KB', ((float)$status['size_bytes']) / 1024) : 'n/a';
+        $mtime = !empty($status['mtime']) ? htmlspecialchars((string)$status['mtime'], ENT_QUOTES, 'UTF-8') : '';
+        $path = !empty($status['path']) ? '<br><small>' . htmlspecialchars((string)$status['path'], ENT_QUOTES, 'UTF-8') . '</small>' : '';
+        $meta = trim($size . ' ' . $mtime);
+        $suffix = $meta ? '<br><small>' . htmlspecialchars($meta, ENT_QUOTES, 'UTF-8') . '</small>' : '';
+        return '<span class="status status-ok">cached</span>' . $suffix . $path;
+    }
+    return '<span class="status status-warn">nicht im Cache</span>';
 }
 
 function shareUrl(int $objectId, int $width): string
@@ -310,6 +345,7 @@ function shareUrl(int $objectId, int $width): string
         <th class="checkbox-col">Warmup</th>
         <th>ID &amp; Medien</th>
         <th>Metadaten</th>
+        <th>Original</th>
         <th>Status 130px</th>
         <th>Status 1300px</th>
         <th>Aktion</th>
@@ -322,6 +358,9 @@ function shareUrl(int $objectId, int $width): string
           $share130 = shareUrl($id, 130);
           $share1300 = shareUrl($id, 1300);
           $mediaUrl = $item['file_url'] ?? null;
+          $cache = $item['cache_status'] ?? null;
+          $status130 = $cache['derivatives'][130] ?? null;
+          $status1300 = $cache['derivatives'][1300] ?? null;
         ?>
         <tr>
           <td class="checkbox-col">
@@ -361,8 +400,9 @@ function shareUrl(int $objectId, int $width): string
             Erstellt: <?= htmlspecialchars($item['created_at'] ?? 'n/a', ENT_QUOTES, 'UTF-8') ?><br>
             Aktualisiert: <?= htmlspecialchars($item['updated_at'] ?? 'n/a', ENT_QUOTES, 'UTF-8') ?>
           </td>
-          <td><?= $checkStatus ? formatStatus($item['status']['130'] ?? null) : '–' ?></td>
-          <td><?= $checkStatus ? formatStatus($item['status']['1300'] ?? null) : '–' ?></td>
+          <td><?= $checkStatus ? formatOriginalStatus($cache) : '–' ?></td>
+          <td><?= $checkStatus ? formatDerivativeStatus($status130) : '–' ?></td>
+          <td><?= $checkStatus ? formatDerivativeStatus($status1300) : '–' ?></td>
           <td class="actions">
             <a href="<?= htmlspecialchars($share130 . '&refresh=true&cb=' . time(), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener">Proxy 130px</a>
             <a href="<?= htmlspecialchars($share1300 . '&refresh=true&cb=' . time(), ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener">Proxy 1300px</a>
