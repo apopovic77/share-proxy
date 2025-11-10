@@ -300,8 +300,24 @@
         let currentIndex = -1;
         let player;
         let hls;
-        const API_BASE_URL = 'https://api-storage.arkturian.com';
-        const API_KEY = 'Inetpass1';
+        const TENANT_CONFIG = {
+            arkturian: { apiKey: 'Inetpass1', baseUrl: 'https://api-storage.arkturian.com' },
+            oneal: { apiKey: 'oneal_demo_token', baseUrl: 'https://api-storage.arkturian.com' },
+            koralmbahn: { apiKey: 'koralmbahn_key', baseUrl: 'https://api-storage.arkturian.com' },
+        };
+
+        const tenantParam = (urlParams.get('tenant') || 'arkturian').toLowerCase();
+        const apiKeyOverride = urlParams.get('api_key');
+        const apiBaseOverride = urlParams.get('api_base_url');
+        const tenantSettings = TENANT_CONFIG[tenantParam] || TENANT_CONFIG.arkturian;
+
+        const API_BASE_URL = apiBaseOverride || tenantSettings.baseUrl;
+        const API_KEY = apiKeyOverride || tenantSettings.apiKey;
+
+        if (!API_KEY) {
+            titleEl.textContent = `Missing API key for tenant "${tenantParam}". Provide ?api_key=... or register it in TENANT_CONFIG.`;
+            throw new Error('No API key configured');
+        }
 
         player = new Plyr(video, { controls: [], clickToPlay: true, fullscreen: { enabled: true } });
 
