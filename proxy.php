@@ -12,6 +12,11 @@
 $apiBase = 'https://api-storage.arkturian.com';
 $apiKey = 'oneal_demo_token';  // Default to O'Neal tenant
 
+// CORS Headers - Allow IndexedDB caching from localhost and production
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET');
+header('Access-Control-Allow-Headers: Content-Type');
+
 // Get object ID from query parameter
 $objectId = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
