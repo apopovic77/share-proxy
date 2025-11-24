@@ -80,7 +80,6 @@ jobs:
             echo "✅ Deployment completed successfully!"
 
       - name: Deploy to secondary server
-        if: ${{ secrets.DEPLOY_HOST_ALT !=  }}
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DEPLOY_HOST_ALT }}
