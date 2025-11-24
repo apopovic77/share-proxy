@@ -9,7 +9,10 @@
  */
 
 // Configuration
-$apiBase = 'https://api-storage.arkturian.com';
+$host = $_SERVER['HTTP_HOST'] ?? '';
+$apiBase = (stripos($host, 'arkserver') !== false)
+    ? 'https://api-storage.arkserver.arkturian.com'
+    : 'https://api-storage.arkturian.com';
 $apiKey = 'oneal_demo_token';  // Default to O'Neal tenant
 
 // CORS Headers - Allow IndexedDB caching from localhost and production
