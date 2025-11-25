@@ -25,12 +25,13 @@ function get_app_config(): array {
     ];
 
     // Special overrides for known environments (optional)
+    // NOTE: Order matters! More specific patterns must come first
     $hostOverrides = [
-        'arkturian.com' => [
-            'api_storage_base_url' => getenv('API_STORAGE_BASE_URL') ?: 'https://api-storage.arkturian.com',
-        ],
         'arkserver' => [
             'api_storage_base_url' => getenv('API_STORAGE_BASE_URL_ARKSERVER') ?: 'https://api-storage.arkserver.arkturian.com',
+        ],
+        'arkturian.com' => [
+            'api_storage_base_url' => getenv('API_STORAGE_BASE_URL') ?: 'https://api-storage.arkturian.com',
         ],
     ];
 
