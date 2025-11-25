@@ -1,10 +1,10 @@
 <?php
+require_once __DIR__ . '/config.php';
+$config = get_app_config();
+
 // Server-side Open Graph/Twitter Card for rich previews (Telegram, etc.)
 $collectionId = isset($_GET['collection_id']) ? $_GET['collection_id'] : '';
-$host = $_SERVER['HTTP_HOST'] ?? '';
-$apiBase = (stripos($host, 'arkserver') !== false)
-    ? 'https://api-storage.arkserver.arkturian.com'
-    : 'https://api-storage.arkturian.com';
+$apiBase = $config['api_storage_base_url'];
 $apiKey = 'Inetpass1';
 $ogTitle = $collectionId ? ("Collection: " . $collectionId) : 'Images';
 $ogDescription = 'Browse shared images and HLS videos.';
@@ -129,7 +129,7 @@ if ($collectionId) {
             setVh();
             window.addEventListener('resize', setVh);
             window.addEventListener('orientationchange', setVh);
-            const API_BASE_URL = 'https://api-storage.arkturian.com';
+            const API_BASE_URL = '<?= js_config('api_storage_base_url'); ?>';
             const API_KEY = 'Inetpass1';
             const params = new URLSearchParams(window.location.search);
             const collectionId = params.get('collection_id');

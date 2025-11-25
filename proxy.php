@@ -8,11 +8,11 @@
  * Usage: https://share.arkturian.com/proxy.php?id={object_id}&width=400&format=webp&quality=75
  */
 
+require_once __DIR__ . '/config.php';
+$config = get_app_config();
+
 // Configuration
-$host = $_SERVER['HTTP_HOST'] ?? '';
-$apiBase = (stripos($host, 'arkserver') !== false)
-    ? 'https://api-storage.arkserver.arkturian.com'
-    : 'https://api-storage.arkturian.com';
+$apiBase = $config['api_storage_base_url'];
 $apiKey = 'oneal_demo_token';  // Default to O'Neal tenant
 
 // CORS Headers - Allow IndexedDB caching from localhost and production

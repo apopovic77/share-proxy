@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '/config.php';
+$config = get_app_config();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -300,10 +304,12 @@
         let currentIndex = -1;
         let player;
         let hls;
+
+        // Use host-relative API URLs from PHP config
         const TENANT_CONFIG = {
-            arkturian: { apiKey: 'Inetpass1', baseUrl: 'https://api-storage.arkturian.com' },
-            oneal: { apiKey: 'oneal_demo_token', baseUrl: 'https://api-storage.arkturian.com' },
-            koralmbahn: { apiKey: 'koralmbahn_key', baseUrl: 'https://api-storage.arkturian.com' },
+            arkturian: { apiKey: 'Inetpass1', baseUrl: '<?= js_config('api_storage_base_url'); ?>' },
+            oneal: { apiKey: 'oneal_demo_token', baseUrl: '<?= js_config('api_storage_base_url'); ?>' },
+            koralmbahn: { apiKey: 'koralmbahn_key', baseUrl: '<?= js_config('api_storage_base_url'); ?>' },
         };
 
         const tenantParam = (urlParams.get('tenant') || 'arkturian').toLowerCase();
