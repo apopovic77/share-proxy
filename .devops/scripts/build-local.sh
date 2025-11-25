@@ -5,7 +5,7 @@ set -euo pipefail
 # Resolve repository root relative to this script so it works everywhere.
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd -P)"
-BUILD_COMMAND="npm run build"
+BUILD_COMMAND="echo 'No build required for PHP'"
 
 usage() {
   cat <<'USAGE'
@@ -36,4 +36,4 @@ fi
 # shellcheck disable=SC2086
 $BUILD_COMMAND
 
-echo "✅ Local build finished. Output: ${REPO_ROOT}/dist"
+echo "✅ PHP project - no build required"
