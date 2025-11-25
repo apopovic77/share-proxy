@@ -30,7 +30,7 @@ jobs:
           script: |
             set -e
 
-            REPO_PATH="/Volumes/DatenAP/Code/share.arkturian.com"
+            REPO_PATH="/var/code/share-proxy"
             DEPLOY_PATH="/var/www/share.arkturian.com"
             BACKUP_DIR="/var/backups"
             BACKUP_PREFIX="share-proxy"
