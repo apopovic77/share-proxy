@@ -1,11 +1,10 @@
 {
   "BACKUP_PREFIX": "share-proxy",
-  "BUILD_COMMAND": "npm run build",
+  "BUILD_COMMAND": "echo 'No build required for PHP'",
   "DEPLOY_PATH": "/var/www/share.arkturian.com",
   "DEV_BRANCH": "dev",
-  "INSTALL_DEPS_COMMAND": "npm ci --production=false",
+  "INSTALL_DEPS_COMMAND": "echo 'No dependencies for PHP'",
   "MAIN_BRANCH": "main",
-  "NODE_VERSION": "18",
   "PROJECT_NAME": "Share Proxy",
   "PROJECT_SLUG": "share-proxy",
   "PROJECT_TYPE": "php",
