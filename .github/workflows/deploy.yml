@@ -5,10 +5,30 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      deploy_arkturian:
+        description: 'Deploy to arkturian.com'
+        type: boolean
+        default: true
+      deploy_aiserver:
+        description: 'Deploy to aiserver.oneal.eu'
+        type: boolean
+        default: true
 
 jobs:
-  deploy:
+  # ============================================================================
+  # PRODUCTION: arkturian.com
+  # ============================================================================
+  deploy-arkturian:
+    name: Deploy to arkturian.com
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      (github.event_name != 'workflow_dispatch' || inputs.deploy_arkturian)
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://share.arkturian.com
 
     steps:
       - name: Checkout code
@@ -44,6 +64,7 @@ jobs:
 
             echo "🔄 Fetching latest code..."
             git fetch origin main
+            git clean -fd --exclude=.env
             git reset --hard origin/main
 
             echo "✅ PHP project - no dependencies to install"
@@ -71,7 +92,7 @@ jobs:
             echo "🔒 Setting permissions..."
             chown -R www-data:www-data "$DEPLOY_PATH"
             chmod -R 755 "$DEPLOY_PATH"
-            
+
             # Make writable directories if they exist
             for dir in logs cache uploads tmp; do
               if [ -d "$DEPLOY_PATH/$dir" ]; then
@@ -96,3 +117,53 @@ jobs:
           echo "❌ Deployment failed for commit ${{ github.sha }}"
           echo "Check logs above for details"
 
+  # ============================================================================
+  # O'NEAL: aiserver.oneal.eu (via arkturian.com jump host)
+  # ============================================================================
+  deploy-aiserver:
+    name: Deploy to aiserver.oneal.eu
+    if: |
+      vars.ENABLE_AISERVER_DEPLOY == 'true' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      (github.event_name != 'workflow_dispatch' || inputs.deploy_aiserver)
+    runs-on: ubuntu-latest
+    environment:
+      name: oneal
+      url: https://gsgbot.arkturian.com/share
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via arkturian.com jump host
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            set -euo pipefail
+            echo "=== Deploying share-proxy to aiserver.oneal.eu via jump host ==="
+
+            # SSH to aiserver and deploy via git
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/oneal_aiserver gsgbot@aiserver.oneal.eu << 'DEPLOY_SCRIPT'
+            set -euo pipefail
+
+            DEPLOY_PATH="/var/code/share-proxy"
+
+            echo "=== Updating repository ==="
+            cd "$DEPLOY_PATH"
+            git fetch origin
+            git clean -fd --exclude=.env
+            git checkout -f main
+            git reset --hard origin/main
+
+            echo "=== Setting permissions ==="
+            chmod -R 755 "$DEPLOY_PATH"
+
+            echo "=== Deployment complete ==="
+            echo "📁 Live at: https://gsgbot.arkturian.com/share"
+            DEPLOY_SCRIPT

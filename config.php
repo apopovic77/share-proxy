@@ -27,6 +27,10 @@ function get_app_config(): array {
     // Special overrides for known environments (optional)
     // NOTE: Order matters! More specific patterns must come first
     $hostOverrides = [
+        'gsgbot' => [
+            // O'Neal aiserver - uses local nginx reverse proxy
+            'api_storage_base_url' => getenv('API_STORAGE_BASE_URL_GSGBOT') ?: 'https://gsgbot.arkturian.com/storage-api',
+        ],
         'arkserver' => [
             'api_storage_base_url' => getenv('API_STORAGE_BASE_URL_ARKSERVER') ?: 'https://api-storage.arkserver.arkturian.com',
         ],
