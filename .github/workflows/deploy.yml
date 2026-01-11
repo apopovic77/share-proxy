@@ -136,8 +136,8 @@ jobs:
             set -euo pipefail
             echo "=== Deploying share-proxy to arkserver via jump host ==="
 
-            # SSH to arkserver and deploy
-            ssh -o StrictHostKeyChecking=no root@arkserver -p 2224 << 'DEPLOY_SCRIPT'
+            # SSH to arkserver and deploy (188.65.73.164)
+            ssh -o StrictHostKeyChecking=no -p 2224 root@188.65.73.164 << 'DEPLOY_SCRIPT'
             set -euo pipefail
 
             REPO_PATH="/var/code/share-proxy"
