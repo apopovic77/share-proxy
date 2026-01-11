@@ -107,7 +107,7 @@ jobs:
             echo "📁 Live at: https://share.arkturian.com"
 
   # ============================================================================
-  # STAGING: arkserver.arkturian.com
+  # STAGING: arkserver.arkturian.com (via arkturian.com jump host)
   # ============================================================================
   deploy-arkserver:
     name: Deploy to arkserver.arkturian.com
@@ -124,15 +124,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to arkserver.arkturian.com
+      - name: Deploy via arkturian.com jump host
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DEPLOY_HOST_ARKSERVER }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          command_timeout: 5m
           script: |
-            set -e
+            set -euo pipefail
+            echo "=== Deploying share-proxy to arkserver via jump host ==="
+
+            # SSH to arkserver and deploy
+            ssh -o StrictHostKeyChecking=no root@arkserver -p 2224 << 'DEPLOY_SCRIPT'
+            set -euo pipefail
 
             REPO_PATH="/var/code/share-proxy"
             DEPLOY_PATH="/var/www/share.arkserver.arkturian.com"
@@ -186,6 +192,7 @@ jobs:
 
             echo "✅ Deployment completed successfully!"
             echo "📁 Live at: https://share.arkserver.arkturian.com"
+            DEPLOY_SCRIPT
 
   # ============================================================================
   # O'NEAL: aiserver.oneal.eu (via arkturian.com jump host)
